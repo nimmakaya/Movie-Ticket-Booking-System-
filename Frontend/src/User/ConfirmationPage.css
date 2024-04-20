@@ -1,0 +1,55 @@
+/* ConfirmationPage.css */
+
+.parent-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.confirmation-container {
+  width: 600px;
+  padding: 20px;
+  border: 2px solid #ccc;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  position: relative; /* Added */
+}
+
+.ticket-details {
+  margin-top: 20px;
+  display: flex; /* Added */
+  flex-direction: column; /* Added */
+  align-items: flex-start; /* Added */
+}
+
+.ticket-details h3 {
+  margin-bottom: 10px;
+}
+
+.poster-img {
+  position: absolute;
+  top: 40;
+  margin-top: 40px;
+  right: 0;
+  width: 50%;
+  height: 30%;
+  border-radius: 10px 10px 0 0;
+  object-fit: contain; /* Added */
+}
+
+.qr-code {
+  position: absolute;
+  bottom: 0;
+  margin-bottom: 40px;
+  margin-right: 60px;
+  right: 0;
+  width: 30%;
+  height: 30%;
+  object-fit: contain; /* Added */
+}
+
+.main-page-button {
+  width: 160px;
+  margin-right: 20px;
+}
