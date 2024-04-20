@@ -1,0 +1,48 @@
+.movie-details-container {
+    max-width: 800px;
+    height: 70vh;
+    overflow-y: auto; 
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.welcome-container {
+    text-align: center;
+    margin-top: 50px;
+}
+.disabled {
+    color: #999; 
+    margin: 0 5px;
+    pointer-events: none; 
+}
+
+
+.movie-details-container h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.movie-details-container p {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.poster {
+    width: 200px;
+    height: 280px;
+    border-radius: 10px 10px 10px 10px; 
+}
+
+.show-time-link {
+    color: blue;
+    margin: 0 5px;
+    cursor: pointer;
+}
+
+.show-time-link:hover {
+    color: darkblue;
+}
