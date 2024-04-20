@@ -57,3 +57,34 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	// Send JWT as response
 	respondWithJSON(w, http.StatusOK, map[string]string{"token": token})
 }
+
+// HandleGetUsernameByEmail handles requests to fetch username by email
+func HandleGetUsernameByEmail(w http.ResponseWriter, r *http.Request) {
+	// Parse request body
+	var emailRequest models.EmailRequest
+	err := json.NewDecoder(r.Body).Decode(&emailRequest)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	// Find user by email
+	collection := db.GetDatabase().Collection("users")
+	filter := bson.M{"email": emailRequest.Email}
+
+	var user models.User
+	err = collection.FindOne(context.Background(), filter).Decode(&user)
+	if err != nil {
+		if err == db.ErrNotFound {
+			// User not found
+			respondWithError(w, http.StatusNotFound, "User not found")
+			return
+		}
+		// Error occurred while querying the database
+		respondWithError(w, http.StatusInternalServerError, "Failed to fetch user")
+		return
+	}
+
+	// Send username as response
+	respondWithJSON(w, http.StatusOK, map[string]string{"username": user.Username})
+}

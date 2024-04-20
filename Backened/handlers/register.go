@@ -52,9 +52,9 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if err != nil {
 		// Some error occurred while checking for existing email
-		log.Println("Error checking for existing email:", err)
-		respondWithError(w, http.StatusInternalServerError, "Failed to register user")
-		return
+		log.Println("existing email doesn't exist:", err)
+		//respondWithError(w, http.StatusInternalServerError, "Failed to register user")
+		//return
 	}
 
 	// Insert user into the database
@@ -67,6 +67,108 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 
 	// Respond with success message
 	respondWithJSON(w, http.StatusCreated, map[string]string{"message": "User registered successfully"})
+}
+
+// HandleChangePassword handles requests to change user password
+func HandleChangePassword(w http.ResponseWriter, r *http.Request) {
+	log.Println("Handling password change request")
+
+	// Parse request body
+	var changePasswordRequest struct {
+		Email           string `json:"email"`
+		CurrentPassword string `json:"currentPassword"`
+		NewPassword     string `json:"newPassword"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&changePasswordRequest)
+	if err != nil {
+		log.Println("Error decoding request body:", err)
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	// Validate request fields
+	if changePasswordRequest.Email == "" || changePasswordRequest.CurrentPassword == "" || changePasswordRequest.NewPassword == "" {
+		log.Println("Invalid request fields:", changePasswordRequest)
+		respondWithError(w, http.StatusBadRequest, "Email, current password, and new password are required")
+		return
+	}
+
+	// Retrieve user from the database
+	collection := db.GetDatabase().Collection("users")
+	filter := bson.M{"email": changePasswordRequest.Email}
+	var user models.User
+	err = collection.FindOne(context.Background(), filter).Decode(&user)
+	if err != nil {
+		log.Println("Error retrieving user from database:", err)
+		respondWithError(w, http.StatusNotFound, "User not found")
+		return
+	}
+
+	// Verify current password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(changePasswordRequest.CurrentPassword))
+	if err != nil {
+		log.Println("Incorrect current password:", err)
+		respondWithError(w, http.StatusUnauthorized, "Incorrect current password")
+		return
+	}
+
+	// Hash the new password
+	hashedNewPassword, err := bcrypt.GenerateFromPassword([]byte(changePasswordRequest.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		log.Println("Error hashing new password:", err)
+		respondWithError(w, http.StatusInternalServerError, "Failed to hash new password")
+		return
+	}
+
+	// Update user password in the database
+	update := bson.M{"$set": bson.M{"password": string(hashedNewPassword)}}
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		log.Println("Error updating user password in database:", err)
+		respondWithError(w, http.StatusInternalServerError, "Failed to update password")
+		return
+	}
+
+	// Respond with success message
+	respondWithJSON(w, http.StatusOK, map[string]string{"message": "Password changed successfully"})
+}
+
+// HandleChangeUsername handles requests to change the username
+func HandleChangeUsername(w http.ResponseWriter, r *http.Request) {
+	log.Println("Handling change username request")
+
+	// Parse request body
+	var requestData struct {
+		Email       string `json:"email"`
+		NewUsername string `json:"newUsername"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		log.Println("Error decoding request body:", err)
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	// Validate input
+	if requestData.Email == "" || requestData.NewUsername == "" {
+		log.Println("Invalid input:", requestData)
+		respondWithError(w, http.StatusBadRequest, "Email and new username are required")
+		return
+	}
+
+	// Update the username in the database
+	collection := db.GetDatabase().Collection("users")
+	filter := bson.M{"email": requestData.Email}
+	update := bson.M{"$set": bson.M{"username": requestData.NewUsername}}
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		log.Println("Error updating username:", err)
+		respondWithError(w, http.StatusInternalServerError, "Failed to update username")
+		return
+	}
+
+	// Respond with success message
+	respondWithJSON(w, http.StatusOK, map[string]string{"message": "Username successfully updated"})
 }
 
 // respondWithError sends an error response with the given status code and message
